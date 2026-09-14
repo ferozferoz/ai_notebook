@@ -4,29 +4,10 @@ from langchain_postgres import PGVector
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-# 1. Configuration & Connection Properties
-# Format: postgresql+psycopg://username:password@host:port/database_name
-CONNECTION_STRING = "postgresql+psycopg://postgres:yourpassword@localhost:5432/your_db"
-COLLECTION_NAME = "local_knowledge_base"
-
-EMBED_MODEL = "nomic-embed-text"
-LLM_MODEL = "qwen2.5-coder:1.5b"
-
-print("🔄 Initializing Ollama models...")
-embeddings = OllamaEmbeddings(model=EMBED_MODEL)
-llm = ChatOllama(model=LLM_MODEL, temperature=0.2)
-
-# 2. Setup Postgres Vector Store via LangChain
-vector_store = PGVector(
-    embeddings=embeddings,
-    collection_name=COLLECTION_NAME,
-    connection=CONNECTION_STRING,
-    use_jsonb=True,
-)
 
 def ingest_sample_data():
     """Simulates loading data, chunking text, and saving to Postgres."""
-    print("\n📥 Simulating file ingestion...")
+    print("\n Simulating file ingestion...")
 
     # Mock data representing proprietary configuration settings
     raw_documents = [
@@ -44,9 +25,9 @@ def ingest_sample_data():
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=150, chunk_overlap=20)
     docs = text_splitter.split_documents(raw_documents)
 
-    print(f"💾 Saving {len(docs)} text chunks to your PostgreSQL vector tables...")
+    print(f"Saving {len(docs)} text chunks to your PostgreSQL vector tables...")
     vector_store.add_documents(docs)
-    print("✅ Ingestion successfully persistent inside Postgres.")
+    print("Ingestion successfully persistent inside Postgres.")
 
 def query_rag_system(user_question: str):
     """Searches Postgres vectors and pipes matches to Ollama code generation."""
@@ -58,7 +39,7 @@ def query_rag_system(user_question: str):
 
     # 2. Extract and compile matching fragments
     context_text = "\n---\n".join([chunk.page_content for chunk in relevant_chunks])
-    print(f"📌 Context found (from {len(relevant_chunks)} snippets)")
+    print(f"Context found (from {len(relevant_chunks)} snippets)")
 
     # 3. Formulate the Augmented Prompt Blueprint
     system_prompt = (
@@ -70,19 +51,45 @@ def query_rag_system(user_question: str):
     )
 
     # 4. Stream response generation from local LLM
-    print("🤖 Ollama Generating Answer:\n")
+    print("Ollama Generating Answer:\n")
     stream = llm.stream(system_prompt)
     for chunk in stream:
         print(chunk.content, end="", flush=True)
     print("\n")
 
 if __name__ == "__main__":
+    # 1. Configuration & Connection Properties
+    # Format: postgresql+psycopg://username:password@host:port/database_name
+    CONNECTION_STRING = "postgresql+psycopg://admin:SuperSecurePassword123!@localhost:5433/app_dev"
+    COLLECTION_NAME = "local_knowledge_base"
+
+    EMBED_MODEL = "nomic-embed-text"   # this model is used for vectorizing text
+    LLM_MODEL = "qwen2.5-coder:1.5b"   # this model is used for generating answers
+
+    print("Initializing Ollama models...")
+    embeddings = OllamaEmbeddings(model=EMBED_MODEL)
+    llm = ChatOllama(model=LLM_MODEL, temperature=0.2)
+    print("Initializing vector store...")
+    # 2. Setup Postgres Vector Store via LangChain
+    vector_store = PGVector(
+    embeddings=embeddings,
+    collection_name=COLLECTION_NAME,
+    connection=CONNECTION_STRING,
+    use_jsonb=True,
+    )
+
+    print("ingesting sample data...")
     # Note: Run ingestion once to populate the DB.
     # You can comment out ingest_sample_data() on subsequent runs!
     ingest_sample_data()
 
     time.sleep(1) # Small rest window for db syncing
-
+    print("query rag system...")
     # Test queries showing vector math matching context
-    query_rag_system("What is the exact timeout limit name for the gateway and what is it set to?")
-    query_rag_system("When does database maintenance take place?")
+    #query_rag_system("What is the exact timeout limit name for the gateway and what is it set to?")
+    #query_rag_system("When does database maintenance take place?")
+    while True:
+        user_input = input("Question: ")
+        if user_input.lower() in ['exit', 'quit']:
+            break
+        query_rag_system(user_input)

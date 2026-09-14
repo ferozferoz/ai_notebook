@@ -5,3 +5,4 @@ langchain_ollama
 langchain_postgres
 langchain_text_splitters
 langchain_core
+psycopg
