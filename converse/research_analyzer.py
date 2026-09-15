@@ -53,7 +53,7 @@ def run_research(query):
         f"QUESTION: {query}\n"
         "ANSWER:"
     )
-    print("\n✍️ Generating Structural Synthesis:\n")
+    print("\nGenerating Structural Synthesis:\n")
     for chunk in llm.stream(research_prompt):
         print(chunk.content, end="", flush=True)
     print("\n")
