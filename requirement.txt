@@ -6,3 +6,8 @@ langchain_postgres
 langchain_text_splitters
 langchain_core
 psycopg
+langchain-ollama
+langchain-postgres
+langchain-community
+pypdf
+docx2txt
